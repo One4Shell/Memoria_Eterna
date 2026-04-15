@@ -37,6 +37,7 @@ interface MemorialData {
 export default function App() {
   const [view, setView] = useState<'editor' | 'viewer'>('editor');
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
+  const [isScanned, setIsScanned] = useState(false);
   const [data, setData] = useState<MemorialData>({
     n: '',
     b: '',
@@ -57,6 +58,7 @@ export default function App() {
         if (decompressed) {
           setData(JSON.parse(decompressed));
           setView('viewer');
+          setIsScanned(true);
         }
       } catch (e) {
         console.error("Failed to parse memorial data", e);
@@ -155,13 +157,15 @@ export default function App() {
         </motion.div>
 
         {/* Floating Back Button for Admin/Preview */}
-        <button 
-          onClick={() => setView('editor')}
-          className="fixed bottom-8 right-6 w-14 h-14 rounded-full bg-ios-surface text-ios-blue flex items-center justify-center shadow-xl active:scale-95 transition-transform z-50 border border-ios-separator/20"
-          title="Torna all'editor"
-        >
-          <ArrowLeft size={24} />
-        </button>
+        {!isScanned && (
+          <button 
+            onClick={() => setView('editor')}
+            className="fixed bottom-8 right-6 w-14 h-14 rounded-full bg-ios-surface text-ios-blue flex items-center justify-center shadow-xl active:scale-95 transition-transform z-50 border border-ios-separator/20"
+            title="Torna all'editor"
+          >
+            <ArrowLeft size={24} />
+          </button>
+        )}
       </div>
     );
   }
@@ -169,11 +173,8 @@ export default function App() {
   return (
     <div className="h-screen flex flex-col bg-ios-bg overflow-hidden font-sans">
       {/* Mobile Top App Bar */}
-      <header className="px-6 py-4 flex items-center justify-between bg-ios-surface/80 backdrop-blur-xl border-b border-ios-separator/30 shrink-0 lg:hidden">
+      <header className="px-6 py-4 flex items-center justify-center bg-ios-surface/80 backdrop-blur-xl border-b border-ios-separator/30 shrink-0 lg:hidden text-center">
         <span className="font-bold text-lg text-ios-label">Memoria Eterna</span>
-        <button className="p-2 text-ios-blue font-semibold">
-          <Settings size={20} />
-        </button>
       </header>
 
       {/* Desktop Header */}
@@ -206,7 +207,7 @@ export default function App() {
         <div className="h-full lg:grid lg:grid-cols-[420px_1fr]">
           
           {/* Editor Pane */}
-          <section className={`h-full overflow-y-auto p-6 lg:p-10 transition-all duration-300 ${activeTab === 'edit' ? 'block' : 'hidden lg:block'}`}>
+          <section className={`h-full overflow-y-auto pt-10 p-6 lg:p-10 transition-all duration-300 ${activeTab === 'edit' ? 'block' : 'hidden lg:block'}`}>
             <div className="max-w-xl mx-auto space-y-8">
               <div className="space-y-1">
                 <h2 className="text-2xl font-bold text-ios-label">Nuovo Memoriale</h2>
@@ -287,13 +288,13 @@ export default function App() {
           </section>
 
           {/* Preview Pane */}
-          <section className={`h-full overflow-y-auto p-6 lg:p-12 flex flex-col items-center justify-center transition-all duration-300 ${activeTab === 'preview' ? 'block' : 'hidden lg:flex'}`}>
+          <section className={`h-full overflow-y-auto pt-10 p-6 lg:p-12 flex flex-col items-center justify-center transition-all duration-300 ${activeTab === 'preview' ? 'block' : 'hidden lg:flex'}`}>
             <div className="max-w-md w-full space-y-10">
               
               {/* QR Code Card */}
               <motion.div 
                 layoutId="qr-card"
-                className="ios-card p-10 flex flex-col items-center gap-8 text-center"
+                className="ios-card p-10 flex flex-col items-center justify-center gap-8 text-center mx-auto"
               >
                 <div className="space-y-1">
                   <h3 className="text-xl font-bold text-ios-label">Codice QR</h3>
@@ -308,11 +309,6 @@ export default function App() {
                     level="M"
                     includeMargin={false}
                   />
-                </div>
-
-                <div className="flex items-center gap-2 text-[11px] font-bold text-ios-blue bg-ios-blue/5 px-5 py-2.5 rounded-full uppercase">
-                  <Info size={16} />
-                  <span>Funziona Offline</span>
                 </div>
               </motion.div>
 
