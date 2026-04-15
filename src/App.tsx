@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, FormEvent } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -20,9 +20,12 @@ import {
   Eye,
   Settings,
   ArrowLeft,
-  Share2
+  Share2,
+  Lock,
+  LogOut
 } from 'lucide-react';
 import LZString from 'lz-string';
+import users from './users.json';
 
 // Types
 interface MemorialData {
@@ -38,6 +41,10 @@ export default function App() {
   const [view, setView] = useState<'editor' | 'viewer'>('editor');
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
   const [isScanned, setIsScanned] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+  const [loginError, setLoginError] = useState('');
+
   const [data, setData] = useState<MemorialData>({
     n: '',
     b: '',
@@ -90,6 +97,22 @@ export default function App() {
       downloadLink.click();
     };
     img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+  };
+
+  const handleLogin = (e: FormEvent) => {
+    e.preventDefault();
+    const user = users.find(u => u.username === loginForm.username && u.password === loginForm.password);
+    if (user) {
+      setIsAuthenticated(true);
+      setLoginError('');
+    } else {
+      setLoginError('Credenziali non valide');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setLoginForm({ username: '', password: '' });
   };
 
   if (view === 'viewer') {
@@ -170,6 +193,71 @@ export default function App() {
     );
   }
 
+  // Login View
+  if (!isAuthenticated) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-ios-bg font-sans p-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-sm w-full space-y-8"
+        >
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-ios-blue flex items-center justify-center text-white shadow-lg">
+              <Lock size={32} />
+            </div>
+            <div className="space-y-1">
+              <h1 className="text-2xl font-bold text-ios-label">Area Riservata</h1>
+              <p className="text-ios-secondary-label text-sm">Accedi per creare nuovi memoriali</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleLogin} className="ios-card p-8 space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-ios-secondary-label uppercase ml-1">Username</label>
+                <input 
+                  type="text"
+                  className="ios-input"
+                  placeholder="Inserisci username"
+                  value={loginForm.username}
+                  onChange={e => setLoginForm({...loginForm, username: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-ios-secondary-label uppercase ml-1">Password</label>
+                <input 
+                  type="password"
+                  className="ios-input"
+                  placeholder="Inserisci password"
+                  value={loginForm.password}
+                  onChange={e => setLoginForm({...loginForm, password: e.target.value})}
+                  required
+                />
+              </div>
+            </div>
+
+            {loginError && (
+              <p className="text-red-500 text-xs text-center font-medium">{loginError}</p>
+            )}
+
+            <button 
+              type="submit"
+              className="w-full py-4 bg-ios-blue text-white rounded-2xl font-semibold shadow-md active:scale-[0.98] transition-all"
+            >
+              Accedi
+            </button>
+          </form>
+
+          <p className="text-center text-[10px] text-ios-secondary-label uppercase tracking-widest font-bold">
+            Memoria Eterna
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-ios-bg overflow-hidden font-sans">
       {/* Mobile Top App Bar */}
@@ -185,7 +273,7 @@ export default function App() {
           </div>
           <h1 className="font-bold text-xl text-ios-label">Memoria Eterna</h1>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           <button 
             onClick={() => setView('viewer')}
             className="px-6 py-2.5 bg-ios-grouped-bg rounded-xl text-sm font-semibold text-ios-blue hover:bg-ios-separator/20 transition-all"
@@ -198,6 +286,14 @@ export default function App() {
             className="px-6 py-2.5 bg-ios-blue text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-30"
           >
             Scarica QR
+          </button>
+          <div className="w-px h-6 bg-ios-separator/30 mx-2" />
+          <button 
+            onClick={handleLogout}
+            className="p-2.5 text-ios-secondary-label hover:text-red-500 transition-colors"
+            title="Logout"
+          >
+            <LogOut size={20} />
           </button>
         </div>
       </header>
@@ -340,6 +436,13 @@ export default function App() {
         >
           <Share2 size={24} />
           <span className="text-[10px] font-semibold">Pagina</span>
+        </button>
+        <button 
+          onClick={handleLogout}
+          className="flex flex-col items-center gap-1 text-ios-secondary-label"
+        >
+          <LogOut size={24} />
+          <span className="text-[10px] font-semibold">Esci</span>
         </button>
       </nav>
 
