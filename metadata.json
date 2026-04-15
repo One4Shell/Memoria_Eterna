@@ -1,0 +1,6 @@
+{
+  "name": "Memoria Eterna",
+  "description": "Generatore di QR Code per lapidi commemorative. Permette di creare biografie digitali accessibili offline tramite parametri URL.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
